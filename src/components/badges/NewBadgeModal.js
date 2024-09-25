@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Modal, Header } from 'semantic-ui-react'
 
-
-
-
 const NewBadgeModal = (props) => {
     const {badgeUpdate} = props
     const [open, setOpen] = useState(false)

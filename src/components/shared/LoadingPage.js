@@ -1,12 +1,11 @@
-import { Spinner } from 'react-bootstrap'
+import { Spinner } from "react-bootstrap";
 
 const LoadingScreen = () => (
-    <div style={{textAlign: 'center'}}>
-        <Spinner role="status" animation="border">
-            <span className="visually-hidden">Loading...</span>
-        </Spinner>
-    </div>
+  <div style={{ textAlign: "center" }}>
+    <Spinner role="status" animation="border">
+      <span className="visually-hidden">Loading...</span>
+    </Spinner>
+  </div>
+);
 
-)
-
-export default LoadingScreen
+export default LoadingScreen;
