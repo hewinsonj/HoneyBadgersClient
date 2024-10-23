@@ -48,3 +48,14 @@ export const getMyBuddies = (user) => {
     url: `${apiUrl}/user/buddies`,
   });
 };
+
+
+export const getCurrentUser = (user) => {
+  return axios({
+    method: "GET",
+    headers: {
+      Authorization: `Token token=${user.token}`,
+    },
+    url: `${apiUrl}/user/currentuser`,
+  });
+};

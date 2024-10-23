@@ -1,8 +1,8 @@
 // import React, { Component, Fragment } from 'react'
-import React, { useState, Fragment } from "react";
+import React, { useState, Fragment, useEffect } from "react";
 import { Route, Routes } from "react-router-dom";
 import { v4 as uuid } from "uuid";
-
+import { getCurrentUser } from "./api/user";
 // import AuthenticatedRoute from './components/shared/AuthenticatedRoute'
 import AutoDismissAlert from "./components/shared/AutoDismissAlert/AutoDismissAlert";
 import Header from "./components/shared/Header";
@@ -18,6 +18,7 @@ import ChangePassword from "./components/auth/ChangePassword";
 import FeedPage from "./components/activities/FeedPage";
 import ShowActivity from "./components/activities/ShowActivity";
 import IndexActivity from "./components/activities/IndexActivity";
+import axios from 'axios';
 // import CreateActivity from './components/activities/CreateActivity'
 // import UpdateActivity from './components/activities/UpdateActivity'
 
@@ -27,6 +28,20 @@ const App = () => {
   const [msgAlerts, setMsgAlerts] = useState([]);
   //trigger to help components update if there is a new activity created w/in the modal, which can be called from anywhere. This is purely a toggle and no meaning should be taken from whether it is true or false
   const [newActivity, setNewActivity] = useState(false);
+
+   // Check if there's a logged-in user (e.g., from localStorage, session, or API)
+  //  useEffect(() => {
+  //   // Assuming you have an API to check the current user session
+  //   axios.get('/api/user') // Example endpoint
+  //     .then((res) => {
+  //       if (res.data.user) {
+  //         setUser(res.data.user); // Set the logged-in user
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       console.log('Error fetching current user:', err);
+  //     });
+  // }, []);
 
   const clearUser = () => {
     setUser(null);
@@ -61,12 +76,12 @@ const App = () => {
       <Routes>
         <Route
           path="/"
-          element={<Home user={user} msgAlert={msgAlert} setUser={setUser} />}
+          element={<Home user={user} msgAlert={msgAlert} getcurrentuser={getCurrentUser} setUser={setUser}/>}
         />
-        <Route
+        {/* <Route
           path="/sign-up"
           element={<SignUp msgAlert={msgAlert} setUser={setUser} />}
-        />
+        /> */}
         <Route
           path="/user-page/"
           element={
@@ -89,7 +104,7 @@ const App = () => {
         />
         <Route
           path="/sign-in"
-          element={<SignIn msgAlert={msgAlert} setUser={setUser} />}
+          element={<SignIn msgAlert={msgAlert} setUser={setUser} user={user}/>}
         />
         <Route
           path="/sign-out"

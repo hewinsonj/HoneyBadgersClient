@@ -23,13 +23,13 @@ const IndexActivity = ({ user, msgAlert }) => {
   const [filterActivities, setFilterActivities] = useState([]);
   const [searchText, setSearchText] = useState([]);
 
-  //function for filtering as user types in activity name
   const handleChange = (e) => {
+    const value = e.target.value.toLowerCase(); // Convert the input value to lowercase
     let activities = allActivities;
     setFilterActivities(
       activities.filter(
         (a) =>
-          a.activity.includes(e.target.value) || a.type.includes(e.target.value)
+          a.activity.toLowerCase().includes(value) || a.type.toLowerCase().includes(value)
       )
     );
   };
@@ -61,11 +61,16 @@ const IndexActivity = ({ user, msgAlert }) => {
   //     )
   // })
 
-  const Index = filterActivities.map((activities) => (
+  const Index = filterActivities.slice().reverse().map((activities) => (
     <Segment key={activities.id} inverted color="yellow" class="capitalize-me">
       <Grid centered stretched>
         <Grid.Row padded>
-          <h1>{activities.activity}</h1>
+          <Segment compact>
+          <h1><Link to={`/show-page/${activities.id}`} 
+          // style={{ textDecoration: 'none', color: 'inherit'}}
+          >
+                      <h2>{activities.activity}</h2>
+                    </Link></h1></Segment>
           <Segment fluid>
             <Grid columns={5}>
               <Grid.Column>

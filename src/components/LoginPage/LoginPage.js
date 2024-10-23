@@ -13,25 +13,32 @@ import {
   Progress,
 } from "semantic-ui-react";
 import { signUp, signIn } from "../../api/auth";
+import { getCurrentUser} from "../../api/user";
 import messages from "../shared/AutoDismissAlert/messages";
 import AvatarSelection from "../../components/Avatars/AvatarSelection";
 import { useNavigate, Link } from "react-router-dom";
 
 const LoginPage = (props) => {
+  const { user} = props;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [username, setUsername] = useState("");
-  const [createdDate, setCreatedDate] = useState("");
+  const [createdDate, setCreatedDate] = useState("");  
+  // const [currentUser, setCurrentUser] = useState(user || null); // Initialize with user from props
+
+
   //default avatar will be badger
   const [avatar, setAvatar] = useState("https://i.imgur.com/uEW4fPX.png");
   const navigate = useNavigate();
 
+
+
   const onSignUp = (event) => {
     event.preventDefault();
-
-    const { msgAlert, setUser } = props;
-
+  
+    const { msgAlert, setUser} = props;
+  
     const credentials = {
       email,
       username,
@@ -40,10 +47,16 @@ const LoginPage = (props) => {
       createdDate,
       avatar,
     };
-
+  
     signUp(credentials)
       .then(() => signIn(credentials))
       .then((res) => setUser(res.data.user))
+      // .then((res) => {
+      //   return getCurrentUser(res.data.user); // Now, get the current user
+      // })
+      // .then((response) => {
+      //   setCurrentUser(response.data.user); // Set the currentUser after fetching
+      // })
       .then(() =>
         msgAlert({
           heading: "Sign Up Success",
@@ -66,8 +79,26 @@ const LoginPage = (props) => {
       });
   };
 
+  // const componentDidMount = (event) => {
+    // const { user, msgAlert} = this.props;
+    // event.preventDefault();
+
+    // getCurrentUser(res)
+    //   .then(() => setCurrentUser(res.data.user))
+    //   .catch((error) => {
+    //     msgAlert({
+    //       heading: "no logged in user" + error.message,
+    //       message: messages.signUpFailure,
+    //       variant: "danger",
+    //     });
+    //   });
+
+    // };
+
+  // console.log(user, "this is the Current USer")
   return (
-    <Grid columns={2} divided padded centered>
+    <Segment inverted>
+    <Grid columns={2} divided padded centered inverted>
       <Grid.Row stretched>
         <Grid.Column>
           <Segment
@@ -77,7 +108,7 @@ const LoginPage = (props) => {
             verticalAlign="middle"
             padded="very"
           >
-            <Segment raised verticalAlign="middle" centered>
+            <Segment raised verticalAlign="middle" centered >
               <h4>
                 <h3>Honey Badges </h3> is an application where users can keep a
                 running list of activites to complete and earn "badges" for
@@ -300,9 +331,12 @@ const LoginPage = (props) => {
             </Segment>
           </Segment>
         </Grid.Column>
+        { user  ? (null) : (
         <Grid.Column>
+          
           <Segment raised inverted color="yellow">
             <Header size="huge">Welcome to HoneyBadges</Header>
+            
             <h3>Sign Up</h3>
             <Container fluid>
               <Form onSubmit={onSignUp}>
@@ -409,10 +443,14 @@ const LoginPage = (props) => {
               Already signed up?&nbsp;<Link to="/sign-in">Login here</Link>
               &nbsp;instead.
             </Message>
+            
           </Segment>
-        </Grid.Column>
+          </Grid.Column>
+        )}
+
+        
       </Grid.Row>
-    </Grid>
+    </Grid></Segment>
   );
 };
 
