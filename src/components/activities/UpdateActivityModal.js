@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Button } from "semantic-ui-react";
 import ActivityForm from "../shared/ActivityForm";
-import { updateActivity } from "../../api/activity";
+import { updateActivity, randomActivity } from "../../api/activity";
 
 const UpdateActivityModal = (props) => {
   const { user, msgAlert, triggerRefresh } = props;
@@ -14,13 +14,13 @@ const UpdateActivityModal = (props) => {
       const { name, value } = target;
       const updatedName = name;
       let updatedValue = value;
-      // handle number type
+
+      // Handle number type
       if (target.type === "number") {
-        // change from string to actual number
         updatedValue = parseInt(e.target.value);
       }
 
-      //handle the checkbox
+      // Handle the checkbox
       if (updatedName === "private" && target.checked) {
         updatedValue = true;
       } else if (updatedName === "private" && !target.checked) {
@@ -36,8 +36,7 @@ const UpdateActivityModal = (props) => {
   const handleUpdateActivity = (e) => {
     e.preventDefault();
 
-    //close form if no change was made
-    if (activity == props.activity) {
+    if (activity === props.activity) {
       setOpen(false);
     } else {
       updateActivity(user, activity, props.activity._id)
@@ -61,6 +60,36 @@ const UpdateActivityModal = (props) => {
     }
   };
 
+  const handleRandomActivity = (e) => {
+    e.preventDefault();
+
+    randomActivity(user)
+      .then((jsonData) => {
+        setActivity((prevActivity) => {
+          return {
+            ...prevActivity,
+            activity: jsonData.data.activity,
+            type: jsonData.data.type,
+            accessibility: jsonData.data.accessibility,
+            participants: jsonData.data.participants,
+            price: jsonData.data.price,
+          };
+        });
+        msgAlert({
+          heading: "Success",
+          message: "Random activity loaded!",
+          variant: "success",
+        });
+      })
+      .catch((error) => {
+        msgAlert({
+          heading: "Failure",
+          message: "Failed to load random activity: " + error,
+          variant: "danger",
+        });
+      });
+  };
+
   return (
     <Modal
       onClose={() => {
@@ -82,6 +111,7 @@ const UpdateActivityModal = (props) => {
           activity={activity}
           handleChange={handleChange}
           handleSubmit={handleUpdateActivity}
+          handleActivity={handleRandomActivity} // Pass the handleRandomActivity function
           heading="Update Your Activity"
         />
       </Modal.Content>

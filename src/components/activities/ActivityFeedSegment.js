@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Button,
   Segment,
@@ -16,6 +16,8 @@ const ActivityFeedSegment = ({ activity, msgAlert, user, mine }) => {
   const [percent, setPercent] = useState(activity.progress);
   const [percentChangeSaving, setPercentChangeSaving] = useState(false);
   const [showSaveButton, setShowSaveButton] = useState(false);
+  const navigate = useNavigate();
+
 
   //function to increment progress when user clicks --> this only changes the progress bar. Nothing is changed on the backend until "save" is hit
 
@@ -101,9 +103,9 @@ const ActivityFeedSegment = ({ activity, msgAlert, user, mine }) => {
           </Grid.Column>
           <Grid.Column width={4} verticalAlign="middle" textAlign="center">
             <Progress percent={percent} indicating />
-            <Button size="large" useNavigate={`/page-page/${activity.owner}`}>
+            {/* <Button size="large" onClick={navigate(`/show-page/${activity._id}`)} >
               View Activity
-            </Button>
+            </Button> */}
 
             {mine ? (
               <>
@@ -131,7 +133,7 @@ const ActivityFeedSegment = ({ activity, msgAlert, user, mine }) => {
                   </>
                 ) : null}
               </>
-            ) : null}
+            ) : null} 
           </Grid.Column>
         </Grid>
       </Container>

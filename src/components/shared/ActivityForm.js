@@ -2,8 +2,7 @@ import React from "react";
 import { Button, Checkbox, Form, Container, Icon } from "semantic-ui-react";
 
 const ActivityForm = (props) => {
-  const { activity, handleChange, handleSubmit, handleActivity, heading } =
-    props;
+  const { activity, handleChange, handleSubmit, handleActivity, heading } = props;
 
   return (
     <Container className="justify-content-center">
@@ -16,7 +15,7 @@ const ActivityForm = (props) => {
             id="activity"
             label="Activity"
             placeholder="Activity"
-            defaultValue={activity.activity}
+            value={activity.activity || ""}
             onChange={handleChange}
           />
         </Form.Group>
@@ -26,7 +25,7 @@ const ActivityForm = (props) => {
           id="type"
           label="Type: (education, social, diy, charity, cooking, relaxation, music, busywork, recreational)"
           placeholder="Type"
-          defaultValue={activity.type}
+          value={activity.type || ""}
           onChange={handleChange}
         />
         <Form.Group inline>
@@ -37,7 +36,7 @@ const ActivityForm = (props) => {
             name="accessibility"
             id="accessibility"
             label="Accessibility Rating"
-            value={activity.accessibility}
+            value={activity.accessibility || 0}
             onChange={handleChange}
           />
           <Form.Input
@@ -47,7 +46,7 @@ const ActivityForm = (props) => {
             name="participants"
             id="participants"
             label="Number of Participants"
-            value={activity.participants}
+            value={activity.participants || 1}
             onChange={handleChange}
           />
           <Form.Input
@@ -57,7 +56,7 @@ const ActivityForm = (props) => {
             name="price"
             id="price"
             label="Price"
-            value={activity.price}
+            value={activity.price || 0}
             onChange={handleChange}
           />
           <Form.Input
@@ -66,7 +65,7 @@ const ActivityForm = (props) => {
             name="progress"
             id="progress"
             label="Progress"
-            value={activity.progress}
+            value={activity.progress || 0}
             onChange={handleChange}
           />
         </Form.Group>
@@ -74,7 +73,7 @@ const ActivityForm = (props) => {
           <Checkbox
             label="Mark Activity as Private"
             name="private"
-            defaultChecked={activity.private}
+            checked={activity.private || false}
             onChange={handleChange}
           />
         </Form.Field>

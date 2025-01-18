@@ -1,13 +1,13 @@
 import apiUrl from "../apiConfig";
 import axios from "axios";
 
-// // USING API FOR HOME PAGE FEED!
-// export const HomeFeed = (user) => {
-// 	return axios({
-// 		method: 'GET',
-// 		url: apiUrl + '/'
-// 	})
-// }
+export const getMessagesBetweenUsers = (user1Id, user2Id) => {
+  return axios.get(`/messages/between/${user1Id}/${user2Id}`, {
+    headers: {
+      Authorization: `Token token=${user1Id}`,
+    },
+  });
+};
 
 //get all activities (unless marked private)
 //data returned: res.data.activities will have all public activities

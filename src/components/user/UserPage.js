@@ -15,13 +15,10 @@ import {
 import { signOut } from "../../api/auth";
 import messages from "../shared/AutoDismissAlert/messages";
 import ActivitySegment from "../activities/ActivitySegment";
-import { getMyActivities } from "../../api/activity";
+import { getAllActivities, getMyActivities } from "../../api/activity";
 import LoadingScreen from "../shared/LoadingPage";
 import BadgesSegment from "../badges/BadgesSegment";
 import ActivityFeedUserPage from "../activities/ActivityFeedUserPage";
-import { getAllActivities } from "../../api/activity";
-import MessagesModal from "./MessagesModal";
-
 import MyActivities from "../activities/MyActivities";
 import BuddiesModal from "./BuddiesModal";
 
@@ -82,6 +79,12 @@ const UserPage = ({ user, msgAlert, newActivity }) => {
       });
   }, []);
 
+  const navigate = useNavigate();
+
+  const handleItemClick = (e, { name }) => {
+    navigate("/messages");
+  };
+
   return (
     <>
       <div>
@@ -94,7 +97,7 @@ const UserPage = ({ user, msgAlert, newActivity }) => {
         >
           <Container fluid>
             <Image src={user.avatar} size="small" wrapped />
-            <MessagesModal user={user} msgAlert={msgAlert} />
+            {/* <Button onClick={handleItemClick}>Buddy Request page</Button> */}
             <BuddiesModal user={user} msgAlert={msgAlert} />
           </Container>
           <Divider />

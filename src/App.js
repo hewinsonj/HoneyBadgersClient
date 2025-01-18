@@ -18,7 +18,9 @@ import ChangePassword from "./components/auth/ChangePassword";
 import FeedPage from "./components/activities/FeedPage";
 import ShowActivity from "./components/activities/ShowActivity";
 import IndexActivity from "./components/activities/IndexActivity";
-import axios from 'axios';
+// import MessagesModel from "./components/user/MessagesModel";
+import MessagesPage from "./components/MessagesPage/MessagesPage";
+import axios from "axios";
 // import CreateActivity from './components/activities/CreateActivity'
 // import UpdateActivity from './components/activities/UpdateActivity'
 
@@ -29,7 +31,7 @@ const App = () => {
   //trigger to help components update if there is a new activity created w/in the modal, which can be called from anywhere. This is purely a toggle and no meaning should be taken from whether it is true or false
   const [newActivity, setNewActivity] = useState(false);
 
-   // Check if there's a logged-in user (e.g., from localStorage, session, or API)
+  // Check if there's a logged-in user (e.g., from localStorage, session, or API)
   //  useEffect(() => {
   //   // Assuming you have an API to check the current user session
   //   axios.get('/api/user') // Example endpoint
@@ -62,7 +64,7 @@ const App = () => {
 
   return (
     <Fragment>
-      {msgAlerts.map((msgAlert) => (
+      {/* {msgAlerts.map((msgAlert) => (
         <AutoDismissAlert
           key={msgAlert.id}
           heading={msgAlert.heading}
@@ -71,12 +73,24 @@ const App = () => {
           id={msgAlert.id}
           deleteAlert={deleteAlert}
         />
-      ))}
-      <Header user={user} msgAlert={msgAlert} setNewActivity={setNewActivity} />
+      ))} */}
+      <Header
+        setUser={setUser}
+        user={user}
+        msgAlert={msgAlert}
+        setNewActivity={setNewActivity}
+      />
       <Routes>
         <Route
           path="/"
-          element={<Home user={user} msgAlert={msgAlert} getcurrentuser={getCurrentUser} setUser={setUser}/>}
+          element={
+            <Home
+              user={user}
+              msgAlert={msgAlert}
+              getcurrentuser={getCurrentUser}
+              setUser={setUser}
+            />
+          }
         />
         {/* <Route
           path="/sign-up"
@@ -92,6 +106,19 @@ const App = () => {
             />
           }
         />
+
+        <Route
+          path="/messages"
+          element={
+            <MessagesPage
+              user={user}
+              viewedUser={viewedUser}
+              msgAlert={msgAlert}
+              setNewActivity={setNewActivity}
+            />
+          }
+        />
+
         <Route
           path="/user-public-page/:otherUserId"
           element={
@@ -104,7 +131,7 @@ const App = () => {
         />
         <Route
           path="/sign-in"
-          element={<SignIn msgAlert={msgAlert} setUser={setUser} user={user}/>}
+          element={<SignIn msgAlert={msgAlert} setUser={setUser} user={user} />}
         />
         <Route
           path="/sign-out"

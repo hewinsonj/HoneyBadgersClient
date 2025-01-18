@@ -49,7 +49,6 @@ export const getMyBuddies = (user) => {
   });
 };
 
-
 export const getCurrentUser = (user) => {
   return axios({
     method: "GET",

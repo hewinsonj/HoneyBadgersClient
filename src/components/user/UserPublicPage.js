@@ -1,97 +1,93 @@
-import { useNavigate, useParams, Link } from "react-router-dom";
-import {
-  Button,
-  Segment,
-  Grid,
-  Label,
-  Icon,
-  Image,
-  Modal,
-  Header,
-  List,
-  Form,
-  Container,
-} from "semantic-ui-react";
 import React, { useState, useEffect } from "react";
-import messages from "../shared/AutoDismissAlert/messages";
+import { Button, Segment, Grid, Image, Container } from "semantic-ui-react";
+import { useNavigate, useParams } from "react-router-dom";
+import { createMessage } from "../../api/message";
+import { getUserInfo } from "../../api/user";
 import { getTheirActivities } from "../../api/activity";
+
 import ActivitySegment from "../activities/ActivitySegment";
+import BadgesSegment from "../badges/BadgesSegment";
 import LoadingScreen from "../shared/LoadingPage";
 
-import imgSrc from "../shared/ImgSrc";
-
-import { getUserInfo } from "../../api/user";
-import RequestModal from "./RequestModal";
-
-import MessageForm from "../shared/MessageForm";
-import getViewedUserInfo from "../../api/viewedUser";
-import { createMessage } from "../../api/message";
-
-import BadgesSegment from "../badges/BadgesSegment";
-
-const UserPublicPage = ({
-  currentUser,
-  msgAlert,
-  viewedUser,
-  triggerRefresh,
-}) => {
-  //grab requested user's id from params
-  const { otherUserId } = useParams();
-
-  //piece of state for badges modal --> should be abstracte into it's own component
-
-  //piece of state for user email
-
-  //set state variables for activities which are public for this user's public profile and completed counts
+const UserPublicPage = ({ currentUser, msgAlert, triggerRefresh }) => {
+  const { otherUserId } = useParams(); // User ID from URL
   const [publicActivities, setPublicActivities] = useState(null);
-  const [completedCounts, setCompletedCounts] = useState({});
   const [email, setEmail] = useState("");
   const [thisUser, setThisUser] = useState({});
   const [createdDate, setCreatedDate] = useState("");
   const [createdAvatar, setAvatar] = useState("");
   const [badges, setBadges] = useState(null);
-  // const [buddiesArr, setBuddiesArr] = useState([]) ==> not going to view other's buddies for now
+  const [isBuddy, setIsBuddy] = useState(false);
 
-  //after initial render, make axios call to grab activity/count data and set the state variables
+  // Fetch user activities and profile information
   useEffect(() => {
     getTheirActivities(currentUser, otherUserId)
       .then((res) => {
         setPublicActivities(res.data.activities.reverse());
-        setCompletedCounts(res.data.completedCounts);
-        setBadges(res.data.userBadges.filter((badge) => badge.level != "none"));
+        setBadges(
+          res.data.userBadges.filter((badge) => badge.level !== "none")
+        );
       })
-      .catch((error) => {
+      .catch((error) =>
         msgAlert({
-          heading: "Something went wrong",
-          message: "Could not get user activities " + error,
+          heading: "Error",
+          message: "Could not get user activities: " + error,
           variant: "danger",
-        });
-      });
+        })
+      );
+  
     getUserInfo(currentUser, otherUserId)
       .then((res) => {
         setEmail(res.data.user.email);
         setCreatedDate(res.data.user.createdDate);
-
         setAvatar(res.data.user.avatar);
+        setThisUser(res.data.user);
+  
+        console.log(currentUser.buddies, "buddies already");
+  
+        // Check if the user is already a buddy
+        const isAlreadyBuddy = currentUser.buddies.some(
+          (buddy) => buddy._id === otherUserId
+        );
+        setIsBuddy(isAlreadyBuddy);
+      })
+      .catch((error) =>
+        msgAlert({
+          heading: "Error",
+          message: "Could not get user info: " + error,
+          variant: "danger",
+        })
+      );
+  }, [currentUser, otherUserId, msgAlert]);
 
-        setThisUser(res.data.user.user);
-        // setBuddiesArr(res.data.user.buddies)
+  // Handle friendship request
+  const handleRequestFriendship = () => {
+    const newMessage = {
+      recipient: otherUserId,
+      owner: currentUser._id,
+      content: "none",
+      isBuddyMessage: true,
+    };
+
+    createMessage(currentUser, newMessage)
+      .then(() => {
+        msgAlert({
+          heading: "Success",
+          message: "Friendship request sent successfully!",
+          variant: "success",
+        });
+        triggerRefresh();
       })
       .catch((error) => {
         msgAlert({
-          heading: "Something went wrong",
-          message: "Could not get user info " + error,
+          heading: "Error",
+          message: "Failed to send friendship request: " + error,
           variant: "danger",
         });
       });
-  }, []);
-
-  const handleRefresh = (e) => {
-    e.preventDefault();
-    triggerRefresh();
   };
 
-  //set JSX for activities w/ MyActivity component --> will show loading screen until call to get data is completed and page re-renders
+  // JSX for activities
   const activitiesJSX = publicActivities ? (
     publicActivities.map((activity) => (
       <ActivitySegment
@@ -107,82 +103,59 @@ const UserPublicPage = ({
   );
 
   return (
-    <>
-      <div>
-        <Segment
-          raised
-          inverted
-          color="yellow"
-          // verticalAlign='middle'
-          fluid
-        >
-          <Grid.Row>
-            <Segment>
-              <Grid columns={2}>
-                <Grid.Column
-                  width={8}
-                  verticalAlign="center"
-                  textAlign="middle"
-                >
-                  <Grid columns={2}>
-                    <Grid.Column width={5} textAlign="middle">
-                      <Image
-                        src={createdAvatar}
-                        size="small"
-                        circular
-                        centered
-                        alt="A picture of the user"
-                      />
-                    </Grid.Column>
-                    <Grid.Column textAlign="middle">
-                      <h1>{email}</h1>
-
-                      <h2>member since {createdDate}</h2>
-                      {currentUser._id !== otherUserId ? (
-                        //&&
-
-                        // (messages.recipients.filter(message => message == currentUser).length > 0
-                        //     &&
-                        //     messages.owner.filter(message => message).length > 0
-                        // )
-                        // <Button onClick={handleChangeBuddyStatus}>Add Buddy</Button>
-                        <Container className="justify-content-center">
-                          <RequestModal
-                            msgAlert={msgAlert}
-                            sender={currentUser}
-                            recipient={thisUser}
-                          />
-                        </Container>
-                      ) : null}
-                    </Grid.Column>
-                  </Grid>
-                </Grid.Column>
-              </Grid>
+    <div>
+      <Segment raised inverted color="yellow">
+        <Grid.Row>
+          <Segment>
+            <Grid columns={2}>
+              <Grid.Column width={8} verticalAlign="center" textAlign="middle">
+                <Grid columns={2}>
+                  <Grid.Column width={5} textAlign="middle">
+                    <Image
+                      src={createdAvatar}
+                      size="small"
+                      circular
+                      centered
+                      alt="User avatar"
+                    />
+                  </Grid.Column>
+                  <Grid.Column textAlign="middle">
+                    <h1>{email}</h1>
+                    <h2>Member since {createdDate}</h2>
+                    {currentUser._id !== otherUserId && !isBuddy && (
+                      <Container className="justify-content-center">
+                        <Button onClick={handleRequestFriendship}>
+                          Add Buddy
+                        </Button>
+                      </Container>
+                    )}
+                  </Grid.Column>
+                </Grid>
+              </Grid.Column>
+            </Grid>
+          </Segment>
+        </Grid.Row>
+        <br />
+        <Grid columns={2} padded>
+          <Grid.Column width={8}>
+            <Grid columns={2} padded centered>
+              <BadgesSegment
+                badges={badges}
+                badgeOwnerHandle={email}
+                mine={false}
+                activities={publicActivities}
+              />
+            </Grid>
+          </Grid.Column>
+          <Grid.Column>
+            <Segment raised textAlign="center">
+              <h1>{email}'s Activity Timeline</h1>
+              <div className="scrolling-group">{activitiesJSX}</div>
             </Segment>
-          </Grid.Row>
-          <br />
-
-          <Grid columns={2} padded>
-            <Grid.Column width={8}>
-              <Grid columns={2} padded centered>
-                <BadgesSegment
-                  badges={badges}
-                  badgeOwnerHandle={email}
-                  mine={false}
-                  activities={publicActivities}
-                />
-              </Grid>
-            </Grid.Column>
-            <Grid.Column>
-              <Segment raised textAlign="center" fluid>
-                <h1>{email}'s Activity Timeline</h1>
-                <div className="scrolling-group">{activitiesJSX}</div>
-              </Segment>
-            </Grid.Column>
-          </Grid>
-        </Segment>
-      </div>
-    </>
+          </Grid.Column>
+        </Grid>
+      </Segment>
+    </div>
   );
 };
 

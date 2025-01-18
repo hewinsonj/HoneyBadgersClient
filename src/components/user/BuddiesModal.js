@@ -1,112 +1,267 @@
-import React, { useState, useEffect } from "react";
-import {
-  Button,
-  Container,
-  Segment,
-  Grid,
-  Feed,
-  Icon,
-  Image,
-  Progress,
-  Modal,
-  List,
-  IconGroup,
-} from "semantic-ui-react";
-import { useNavigate } from "react-router-dom";
-import LoadingScreen from "../shared/LoadingPage";
-import { deleteBuddy, getMyBuddies } from "../../api/user";
+import React, { useEffect, useState } from "react";
+import { Modal, List, Segment, Button, Image, Label } from "semantic-ui-react";
+import { getMyMessages, deleteMessage } from "../../api/message"; // Import getMyMessages and deleteMessage
+import { createBuddy, getMyBuddies, deleteBuddy } from "../../api/user"; // Import createBuddy, getBuddies, and removeBuddy API functions
+import BadgesSegment from "../badges/BadgesSegment"; // Import badge logic for displaying badges
 
-const BuddiesModal = ({ user, msgAlert }) => {
-  const [open, setOpen] = useState(false);
+const BuddyModal = ({ user, msgAlert }) => {
+  const [open, setOpen] = useState(false); // Modal open state
+  const [buddyRequests, setBuddyRequests] = useState([]); // Store filtered buddy messages
+  const [buddies, setBuddies] = useState([]); // Store current buddies
+  const [hasBuddyRequests, setHasBuddyRequests] = useState(false); // Tracks if there are pending buddy requests
 
-  //buddies state -> will grab from the db on open and when you delete. This makes sense insofar as you will more quickly see if someone else has 'de-friended' you
-  const [buddies, setBuddies] = useState(null);
-
-  //piece of state to trigger refresh if buddy is deleted
-  const [anUpdate, setAnUpdate] = useState(false);
-
-  //pull in navigate to a user can go to the profile of a requestor
-  const navigate = useNavigate();
-
+  // Fetch buddy requests and current buddies when the modal opens or to update the alert
   useEffect(() => {
-    getMyBuddies(user)
-      .then((res) => setBuddies(res.data.buddies))
-      .catch((error) => {
-        msgAlert({
-          heading: "Buddy Error",
-          message: "Could not get your buddies: " + error,
-          variant: "danger",
-        });
-      });
-  }, [anUpdate, open]);
+    // Fetch buddy requests
+    getMyMessages(user)
+      .then((res) => {
+        const filteredRequests = res.data.messages.filter(
+          (message) => message.isBuddyMessage
+        );
+        setBuddyRequests(filteredRequests);
 
-  const handleRemoveBuddy = (buddyId) => {
-    //delete from DB
-    deleteBuddy(user, buddyId)
-      .then(() => setAnUpdate((prev) => !prev))
+        // Update alert visibility
+        setHasBuddyRequests(filteredRequests.length > 0);
+      })
       .catch((error) => {
         msgAlert({
-          heading: "Could not Remove",
-          message: "could not remove this badger budy: " + error,
+          heading: "Error",
+          message: "Failed to fetch buddy requests: " + error.message,
           variant: "danger",
         });
       });
-    //delete from user's current buddy array using a filter
+
+    // Fetch current buddies
+    if (open) {
+      getMyBuddies(user)
+        .then((res) => {
+          setBuddies(res.data.buddies);
+        })
+        .catch((error) => {
+          msgAlert({
+            heading: "Error",
+            message: "Failed to fetch buddies: " + error.message,
+            variant: "danger",
+          });
+        });
+    }
+  }, [open, user, msgAlert]);
+
+  // Handle accepting a buddy request
+  const handleAcceptRequest = (message) => {
+    const newBuddyId = message.owner._id;
+
+    createBuddy(user, newBuddyId)
+      .then(() => {
+        msgAlert({
+          heading: "Success",
+          message: `${message.owner.username || "User"} is now your buddy!`,
+          variant: "success",
+        });
+
+        // Delete the buddy request message
+        return deleteMessage(user, message._id);
+      })
+      .then(() => {
+        setBuddyRequests((prevRequests) =>
+          prevRequests.filter((req) => req._id !== message._id)
+        );
+
+        // Update alert visibility
+        setHasBuddyRequests(
+          buddyRequests.filter((req) => req._id !== message._id).length > 0
+        );
+
+        // Refresh the buddy list
+        return getMyBuddies(user);
+      })
+      .then((res) => {
+        setBuddies(res.data.buddies);
+      })
+      .catch((error) => {
+        msgAlert({
+          heading: "Error",
+          message: "Failed to accept buddy request: " + error.message,
+          variant: "danger",
+        });
+      });
   };
 
-  //if awaiting buddies data, show loading
-  if (!buddies) {
-    return <LoadingScreen />;
-  }
+  // Handle denying a buddy request
+  const handleDenyRequest = (messageId) => {
+    deleteMessage(user, messageId)
+      .then(() => {
+        msgAlert({
+          heading: "Request Denied",
+          message: "Buddy request has been denied.",
+          variant: "info",
+        });
 
-  const buddiesJSX =
-    buddies.length > 0 ? (
-      buddies.map((buddy) => {
-        const handle = buddy.username ? buddy.username : buddy.email;
-        const buddyId = buddy._id;
-        return (
-          <List.Item key={`buddy-${buddyId}`}>
-            {buddy.avatar && <Image avatar src={buddy.avatar} />}
-            <List.Content>
-              <List.Header
-                as="a"
-                onClick={() => navigate(`/user-public-page/${buddyId}`)}
-              >
-                {handle}
-              </List.Header>
-              <List.Description padded>
-                Remove this badger buddy:
-                <Icon
-                  link
-                  onClick={() => handleRemoveBuddy(buddyId)}
-                  name="dont"
-                  color="red"
-                />
-              </List.Description>
-            </List.Content>
-          </List.Item>
+        // Remove the request from the UI
+        setBuddyRequests((prevRequests) =>
+          prevRequests.filter((req) => req._id !== messageId)
+        );
+
+        // Update alert visibility
+        setHasBuddyRequests(
+          buddyRequests.filter((req) => req._id !== messageId).length > 0
         );
       })
-    ) : (
-      <p>
-        You have no badger buddies yet. Send a request to someone by going to
-        their profile
-      </p>
-    );
+      .catch((error) => {
+        msgAlert({
+          heading: "Error",
+          message: "Failed to deny buddy request: " + error.message,
+          variant: "danger",
+        });
+      });
+  };
+
+  // Handle removing a buddy
+  const handleRemoveBuddy = (buddyId) => {
+    if (window.confirm("Are you sure you want to remove this buddy?")) {
+      deleteBuddy(user, buddyId)
+        .then(() => {
+          msgAlert({
+            heading: "Buddy Removed",
+            message: "The buddy has been successfully removed.",
+            variant: "info",
+          });
+
+          // Remove the buddy from the list
+          setBuddies((prevBuddies) =>
+            prevBuddies.filter((buddy) => buddy._id !== buddyId)
+          );
+        })
+        .catch((error) => {
+          msgAlert({
+            heading: "Error",
+            message: "Failed to remove buddy: " + error.message,
+            variant: "danger",
+          });
+        });
+    }
+  };
+
+  // Render buddy requests
+  const buddyRequestsJSX = buddyRequests.length > 0 ? (
+    <div style={{ display: "flex", overflowX: "scroll", gap: "20px", padding: "10px" }}>
+      {buddyRequests.map((message) => (
+        <div
+          key={message._id}
+          style={{
+            textAlign: "center",
+            minWidth: "150px",
+            border: "1px solid #ddd",
+            borderRadius: "10px",
+            padding: "10px",
+            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+            backgroundColor: "#f9f9f9",
+          }}
+        >
+          <p style={{ fontSize: "1.2em", fontWeight: "bold", marginBottom: "10px" }}>
+            {message.owner.username || message.owner.email}
+          </p>
+          <Image
+            src={message.owner.avatar || "/default-avatar.png"}
+            size="small"
+            circular
+            style={{ margin: "0 auto" }}
+          />
+          <Button
+            color="green"
+            size="small"
+            style={{ marginTop: "10px" }}
+            onClick={() => handleAcceptRequest(message)}
+          >
+            Accept
+          </Button>
+          <Button
+            color="red"
+            size="small"
+            style={{ marginTop: "10px" }}
+            onClick={() => handleDenyRequest(message._id)}
+          >
+            Deny
+          </Button>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p>No buddy requests available.</p>
+  );
+
+  // Render current buddies
+  const buddiesJSX = buddies.length > 0 ? (
+    <div style={{ display: "flex", overflowX: "scroll", gap: "20px", padding: "10px" }}>
+      {buddies.map((buddy) => (
+        <div
+          key={buddy._id}
+          style={{
+            textAlign: "center",
+            minWidth: "150px",
+            border: "1px solid #ddd",
+            borderRadius: "10px",
+            padding: "10px",
+            boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+            backgroundColor: "#f9f9f9",
+          }}
+        >
+          <p style={{ fontSize: "1.2em", fontWeight: "bold", marginBottom: "10px" }}>
+            {buddy.username || buddy.email}
+          </p>
+          <Image
+            src={buddy.avatar || "/default-avatar.png"}
+            size="small"
+            circular
+            style={{ margin: "0 auto" }}
+          />
+          <Button
+            color="red"
+            size="small"
+            style={{ marginTop: "10px" }}
+            onClick={() => handleRemoveBuddy(buddy._id)}
+          >
+            Remove Buddy
+          </Button>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p>You currently have no buddies.</p>
+  );
 
   return (
     <Modal
       onClose={() => setOpen(false)}
       onOpen={() => setOpen(true)}
       open={open}
-      trigger={<Button>Badger Buddies</Button>}
-      size="small"
+      trigger={
+        <Button>
+          View Buddy Page
+          {hasBuddyRequests && (
+            
+            <Label circular color="red" >
+              NEW BUDDY REQUEST!
+            </Label>
+          )}
+        </Button>
+      }
     >
-      <Modal.Header>Your Badger Buddies</Modal.Header>
-      <Modal.Content scrolling></Modal.Content>
-      <Container fluid text>
-        <List>{buddiesJSX}</List>
-      </Container>
+      <Modal.Header>Buddy Requests</Modal.Header>
+      <Modal.Content>
+        <Segment>
+          <h3>Pending Requests</h3>
+          <List divided relaxed>
+            {buddyRequestsJSX}
+          </List>
+        </Segment>
+        <Segment>
+          <h3>Your Buddies</h3>
+          <List divided relaxed>
+            {buddiesJSX}
+          </List>
+        </Segment>
+      </Modal.Content>
       <Modal.Actions>
         <Button color="black" onClick={() => setOpen(false)}>
           Close
@@ -116,4 +271,4 @@ const BuddiesModal = ({ user, msgAlert }) => {
   );
 };
 
-export default BuddiesModal;
+export default BuddyModal;
