@@ -135,8 +135,6 @@
 
 // export default MessagesPage;
 
-
-
 import React, { useState, useEffect } from "react";
 import { Segment, Image, Button, Header } from "semantic-ui-react";
 import { Link } from "react-router-dom";
@@ -205,62 +203,64 @@ const MessagesPage = ({ user, msgAlert }) => {
   });
 
   return (
-    <Segment>
+    <Segment color="yellow" inverted fluid>
       <Header as="h2" textAlign="center" style={{ marginBottom: "20px" }}>
         Your Messages
       </Header>
       <div>
-        {lastMessagesByBuddy.map(({ buddy, lastMessage }) => (
-          buddy && lastMessage && (
-            <div
-              key={buddy._id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                border: "1px solid #ddd",
-                borderRadius: "10px",
-                padding: "10px",
-                marginBottom: "10px",
-                boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
-                backgroundColor: "#f9f9f9",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <Link to={`/user-public-page/${buddy._id}`}>
-                  <Image
-                    src={buddy.avatar || "/default-avatar.png"}
-                    size="tiny"
-                    circular
-                    style={{ marginRight: "10px" }}
-                  />
-                </Link>
-                <div>
-                  <Link
-                    to={`/user-public-page/${buddy._id}`}
-                    style={{
-                      fontWeight: "bold",
-                      fontSize: "1.2em",
-                      margin: 0,
-                      textDecoration: "none",
-                      color: "black",
-                    }}
-                  >
-                    {buddy.username || buddy.email}
+        {lastMessagesByBuddy.map(
+          ({ buddy, lastMessage }) =>
+            buddy &&
+            lastMessage && (
+              <div
+                key={buddy._id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  border: "1px solid #ddd",
+                  borderRadius: "10px",
+                  padding: "10px",
+                  marginBottom: "10px",
+                  boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                  backgroundColor: "#f9f9f9",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center" }}>
+                  <Link to={`/user-public-page/${buddy._id}`}>
+                    <Image
+                      src={buddy.avatar || "/default-avatar.png"}
+                      size="tiny"
+                      circular
+                      style={{ marginRight: "10px" }}
+                    />
                   </Link>
-                  <p style={{ fontSize: "0.9em", color: "#555", margin: 0 }}>
-                    {lastMessage.content.substring(0, 15)}...
-                  </p>
+                  <div>
+                    <Link
+                      to={`/user-public-page/${buddy._id}`}
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "1.2em",
+                        margin: 0,
+                        textDecoration: "none",
+                        color: "black",
+                      }}
+                    >
+                      {buddy.username || buddy.email}
+                    </Link>
+                    <p style={{ fontSize: "0.9em", color: "#555", margin: 0 }}>
+                      {lastMessage.content.substring(0, 15)}...
+                    </p>
+                  </div>
                 </div>
+                <RequestModal
+                  sender={user}
+                  recipient={buddy}
+                  msgAlert={msgAlert}
+                />
               </div>
-              <RequestModal
-                sender={user}
-                recipient={buddy}
-                msgAlert={msgAlert}
-              />
-            </div>
-          )
-        ))}
+            )
+        )}
       </div>
     </Segment>
   );

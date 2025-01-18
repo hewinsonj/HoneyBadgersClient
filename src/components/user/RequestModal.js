@@ -111,7 +111,8 @@ const RequestModal = ({ sender, recipient, msgAlert }) => {
             flexDirection: "column-reverse", // Reverse the flex direction for newest messages at the bottom
           }}
         >
-          <List divided relaxed>
+          <List divided relaxed
+>
             {messages.map((msg) => (
               <List.Item key={msg._id} style={{ marginBottom: "10px" }}>
                 <List.Content>
